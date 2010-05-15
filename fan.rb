@@ -41,10 +41,6 @@ def log(text)
   puts("%s %s" % [ Time.now, text ])
 end
 
-def root?
-  Process.euid == 0
-end
-
 def read_pwm(input)
   return File.read(input).split.first.to_i
 end
