@@ -53,7 +53,6 @@ class Sensor
   attr_accessor :samples
   attr_accessor :values
 
-
   def initialize(options = {})
     options = { :samples => 5 }.merge(options)
 
