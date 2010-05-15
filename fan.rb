@@ -1,40 +1,7 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 
-
-DIR  = '/sys/devices/platform/w83627ehf.656'
-CONF = {
-  :cpu => {
-    :fan     => File.join(DIR, 'fan2_input'),
-    :pwm     => File.join(DIR, 'pwm2'),
-    :temp    => [ File.join(DIR, 'temp1_input'),
-                  File.join(DIR, 'temp2_input'),
-                  File.join(DIR, 'temp3_input') ],
-    :func    => lambda { |sys, cpu, cpu_mb|
-      [
-       500,
-       (0.1 * sys +
-        0.6 * cpu +
-        0.3 * cpu_mb) * 40 - 1000
-      ].max
-    },
-  },
-  :psu => {
-    :fan     => File.join(DIR, 'fan1_input'),
-    :pwm     => File.join(DIR, 'pwm4'),
-    :temp    => [ File.join(DIR, 'temp1_input'),
-                  File.join(DIR, 'temp2_input'),
-                  File.join(DIR, 'temp3_input') ],
-    :func    => lambda { |sys, cpu, cpu_mb|
-      [
-       500,
-        (0.8 * sys +
-         0.1 * cpu +
-         0.1 * cpu_mb) * 45 - 1050
-      ].max
-    },
-  },
-}
+require 'thread'
 
 
 def log(text)
@@ -49,28 +16,6 @@ def write_pwm(input, value)
   File.open(input, "w") do |io|
     io.write(value)
   end
-end
-
-def read_rpm(input)
-  values = []
-
-  (0..3).each do
-    values << File.read(input).split.first.to_i
-    sleep(1)
-  end
-
-  values.inject(:+) / values.size
-end
-
-def read_temperature(input)
-  values = []
-
-  (0..3).each do
-    values << File.read(input).split.first.to_i / 1000.0
-    sleep(1)
-  end
-
-  values.inject(:+) / values.size
 end
 
 def set_fan_rpm(options)
@@ -104,25 +49,140 @@ def set_fan_speed(options)
 end
 
 
-if __FILE__ == $0
-  begin
-    log("Starting #{$0}")
+class Sensor
+  attr_accessor :samples
+  attr_accessor :values
 
-    threads = []
 
-    CONF.each_pair do |fan, fan_options|
-      threads << Thread.new(fan, fan_options) do |f, o|
-        loop do
-          set_fan_speed({ :name => f }.merge(o))
-          sleep(10)
-        end
-      end
+  def initialize(options = {})
+    options = { :samples => 5 }.merge(options)
+
+    @semaphore = Mutex.new
+
+    self.samples = options[:samples]
+    self.values  = []
+  end
+
+  def read
+    nil
+  end
+
+  def update
+    @semaphore.synchronize do
+      self.values.shift while self.values.size >= self.samples
+      self.values.push(self.read)
+    end
+  end
+
+  def value
+    value = nil
+
+    @semaphore.synchronize do
+      value = self.values.inject(:+) / self.values.size unless self.values.empty?
     end
 
-    threads.each { |t| t.join }
+    value
+  end
+end
 
-    log("Done")
+
+class FileInputSensor < Sensor
+  attr_accessor :filename
+
+  def initialize(options = {})
+    options = { :filename => nil }.merge(options)
+
+    super(options)
+
+    self.filename = options[:filename]
+  end
+
+  def read
+    File.read(self.filename)
+  end
+end
+
+
+class FanSensor < FileInputSensor
+  def read
+    super().split.first.to_i
+  end
+end
+
+
+class TemperatureSensor < FileInputSensor
+  def read
+    super().split.first.to_i / 1000.0
+  end
+end
+
+
+class FanController
+  attr_accessor :filename
+  attr_accessor :function
+
+  def initialize(options = {})
+    options = {
+      :filename => nil,
+      :function => lambda { nil },
+    }.merge(options)
+
+    self.filename = options[:filename]
+    self.function = options[:function]
+  end
+
+  def set_fan_speed
+  end
+end
+
+
+if __FILE__ == $0
+  begin
+    SENSOR_DIR = '/sys/devices/platform/w83627ehf.656'
+
+    sensors = {
+      :fan_cpu => FanSensor.new(:filename => File.join(SENSOR_DIR, 'fan2_input'),
+                                :samples  => 5),
+      :fan_system => FanSensor.new(:filename => File.join(SENSOR_DIR, 'fan1_input'),
+                                   :samples  => 5),
+      :temp_cpu => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'temp2_input'),
+                                         :samples => 3),
+      :temp_cpu_thermistor => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'temp3_input'),
+                                                    :samples => 3),
+      :temp_system => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'temp1_input'),
+                                            :samples => 3),
+    }
+
+    controllers = {
+      :cpu => FanController.new(:filename => File.join(SENSOR_DIR, 'pwm2'),
+                                :function => lambda { [ 500,
+                                                        (0.1 * sensors[:temp_system].value +
+                                                         0.6 * sensors[:temp_cpu].value +
+                                                         0.3 * sensors[:temp_cpu_thermistor].value) * 40 - 1000
+                                                      ].max } ),
+      :power_supply => FanController.new(:filename => File.join(SENSOR_DIR, 'pwm4'),
+                                         :function => lambda { [ 500,
+                                                                 (0.8 * sensors[:temp_system].value +
+                                                                  0.1 * sensors[:temp_cpu].value +
+                                                                  0.1 * sensors[:temp_cpu_thermistor].value) * 45 - 1050
+                                                               ].max } ),
+    }
+
+    threads = [ Thread.new {
+                  loop {
+                    sensors.each_pair { |sym, sensor| sensor.update }
+                    sleep 2
+                  }
+                },
+                Thread.new {
+                  loop {
+                    controllers.each_pair { |sym, controller| controller.set_fan_speed }
+                    sleep 10
+                  }
+                }, ]
+
+    threads.each { |t| t.join }
   rescue Interrupt
-    log("Interrupted")
+    log("Interrupted.")
   end
 end
