@@ -192,8 +192,8 @@ class FanController
 
   # Get the PWM difference for the given difference of the fan's rotation speed. For
   # differences less or equal than 10 rounds per minute, the PWM value is not changed. At
-  # a difference of 11 to 150 rpm, the PWM value is changed by 1. For larger differences,
-  # the PWM value is changed by 10.
+  # a difference of 11 to 50 rpm, the PWM value is changed by 1. At 51 to 150 rpm, PWM is
+  # change by 3. For larger differences, the PWM value is changed by 10.
   #
   # The fan should slowly read the targed speed that way.
   #
@@ -204,9 +204,11 @@ class FanController
 
     case speed_diff
     when ( 151 ... inf): pwm_diff =  10
-    when (  11 ... 150): pwm_diff =   1
+    when (  51 ... 150): pwm_diff =   3
+    when (  11 ...  50): pwm_diff =   1
     when ( -10 ...  10): pwm_diff =   0
-    when (-150 ..  -10): pwm_diff =  -1
+    when ( -50 ..  -10): pwm_diff =  -1
+    when (-150 ..  -50): pwm_diff =  -3
     when (-inf .. -150): pwm_diff = -10
     end
   end
