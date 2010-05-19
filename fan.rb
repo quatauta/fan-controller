@@ -264,7 +264,7 @@ if __FILE__ == $0
     threads = [ Thread.new {
                   loop {
                     sensors.each_pair { |sym, sensor| sensor.update }
-                    sleep 2
+                    sleep 3
                   }
                 },
                 Thread.new {
@@ -273,7 +273,7 @@ if __FILE__ == $0
                   log("Controlling fan speed.")
                   loop {
                     controllers.each_pair { |sym, controller| controller.set_fan_speed }
-                    sleep 10
+                    sleep 15
                   }
                 }, ]
 
