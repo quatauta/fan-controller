@@ -220,7 +220,8 @@ end
 # @param [String] text the text to print
 # @return [nil]
 def log(text)
-  puts("%s %s" % [ Time.now, text ])
+  $stdout.puts("%s %s" % [ Time.now, text ])
+  $stdout.flush
 end
 
 
