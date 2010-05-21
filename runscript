@@ -1,0 +1,20 @@
+#!/sbin/runscript
+# Copyright 1999-2008 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+start() {
+    ebegin "Starting fan"
+    start-stop-daemon --start --quiet --background \
+        --make-pidfile --pidfile ${PID} \
+        --stdout /var/log/fan.rb.log \
+        --stderr /var/log/fan.rb.log \
+        --exec ${CMD}
+    eend ${?}
+}
+
+stop() {
+    ebegin "Stopping fan"
+    start-stop-daemon --stop --pidfile ${PID}
+    eend ${?}
+}
