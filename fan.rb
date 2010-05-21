@@ -10,7 +10,7 @@ require 'thread'
 class Sensor
   # The number of senor values stored in {#values}
   attr_accessor :samples
-  
+
   # The ring-buffer to store the sensor values
   attr_accessor :values
 
@@ -111,15 +111,15 @@ class FanController
   # The {FanSensor} to read the fan's rotations speed
   # @return [FanSensor]
   attr_accessor :fan_sensor
-  
+
   # The file to read/write the PWM value from/to
   # @return [String]
   attr_accessor :filename
-  
+
   # The +Proc+ that calculates the rotation speed of the fan
   # @return [Proc]
   attr_accessor :function
-  
+
   # The name of the fan. Only used in the logging output prodcued by {#set_fan_speed}
   # @return [String]
   attr_accessor :name
@@ -186,7 +186,7 @@ class FanController
 
       self.pwm = current_pwm + pwm_diff
     end
-    
+
     target_speed
   end
 
@@ -198,7 +198,7 @@ class FanController
   # The fan should slowly read the targed speed that way.
   #
   # @param [Numeric] speed_diff the rotation speed difference
-  # @return [Integer] the PWM value difference 
+  # @return [Integer] the PWM value difference
   def speed_diff_to_pwm_diff(speed_diff)
     inf = 1.0/0.0
 
