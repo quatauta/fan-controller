@@ -176,7 +176,7 @@ class FanController
     target_speed  = self.function.call.to_i
     pwm_diff      = self.speed_diff_to_pwm_diff(target_speed - current_speed)
 
-    if 0 < pwm_diff
+    if 0 != pwm_diff
       log("%s: %d rpm to %d rpm, changing %s by %d." % \
           [ self.name,
             current_speed,
