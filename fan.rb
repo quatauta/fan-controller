@@ -273,7 +273,7 @@ if __FILE__ == $0
                   log("Controlling fan speed.")
                   loop {
                     controllers.each_pair { |sym, controller| controller.set_fan_speed }
-                    sleep 15
+                    sleep 10
                   }
                 }, ]
 
