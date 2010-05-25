@@ -221,7 +221,7 @@ end
 # @param [String] msg the text or Exception to print
 # @return [nil]
 def log(msg)
-  if text.kind_of? Exception
+  if msg.kind_of? Exception
     log("Exception in thread %s: %s\n  %s" % [ Thread.current[:name],
                                                msg.inspect,
                                                msg.backtrace.join("\n  ") ])
