@@ -269,25 +269,29 @@ if __FILE__ == $0
 
     log("Starting ...")
 
-    threads = [ Thread.new {
-                  loop {
-                    sensors.each_pair { |sym, sensor| sensor.update }
-                    sleep 3
-                  }
-                },
-                Thread.new {
-                  log("Collecting sensor values for 10 seconds ...")
-                  sleep 10
-                  log("Controlling fan speed.")
-                  loop {
-                    controllers.each_pair { |sym, controller| controller.set_fan_speed }
-                    sleep 10
-                  }
-                }, ]
+    Thread.new {
+      Thread.current[:name] = "Sensors"
+      loop {
+        begin
+          sensors.each_pair { |sym, sensor| sensor.update }
+        rescue Execption => e
+          log(e)
+        end
 
-    threads.each { |t| t.join }
-    log("Done.")
-  rescue Interrupt
-    log("Interrupted.")
+        sleep(3)
+      }
+    }
+
+    log("Collecting sensor values for 10 seconds ...")
+    sleep(10)
+
+    log("Controlling fan speed.")
+    Thread.current[:name] = "Controllers"
+    loop {
+      controllers.each_pair { |sym, controller| controller.set_fan_speed }
+      sleep(10)
+    }
+  rescue Exception => e
+    log(e)
   end
 end
