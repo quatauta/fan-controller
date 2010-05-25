@@ -218,7 +218,7 @@ end
 
 # Print the text prefixed by the current date and time.
 #
-# If an Exception is given, the thread-local variable :name (or Thread#to_s) and the
+# If an Exception is given, the thread-local variable +:name+ (or +Thread#to_s+) and the
 # backtrace is logged.
 #
 # @param [String] msg the text or Exception to print
