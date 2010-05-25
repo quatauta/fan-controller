@@ -217,11 +217,17 @@ end
 
 # Print the text prefixed by the current date and time
 #
-# @param [String] text the text to print
+# @param [String] msg the text or Exception to print
 # @return [nil]
-def log(text)
-  $stdout.puts("%s %s" % [ Time.now, text ])
-  $stdout.flush
+def log(msg)
+  if text.kind_of? Exception
+    log("Exception in thread %s: %s\n  %s" % [ Thread.current[:name],
+                                               msg.inspect,
+                                               msg.backtrace.join("\n  ") ])
+  else
+    $stdout.puts("%s %s" % [ Time.now, msg ])
+    $stdout.flush
+  end
 end
 
 
