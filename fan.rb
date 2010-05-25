@@ -216,13 +216,16 @@ class FanController
 end
 
 
-# Print the text prefixed by the current date and time
+# Print the text prefixed by the current date and time.
+#
+# If an Exception is given, the thread-local variable :name (or Thread#to_s) and the
+# backtrace is logged.
 #
 # @param [String] msg the text or Exception to print
 # @return [nil]
 def log(msg)
   if msg.kind_of? Exception
-    log("Exception in thread %s: %s\n  %s" % [ Thread.current[:name],
+    log("Exception in thread %s: %s\n  %s" % [ Thread.current[:name] || Thread.current.to_s,
                                                msg.inspect,
                                                msg.backtrace.join("\n  ") ])
   else
