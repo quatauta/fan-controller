@@ -203,13 +203,13 @@ class FanController
     inf = 1.0/0.0
 
     case speed_diff
-    when ( 151 ..  inf): pwm_diff =  10
-    when (  51 ..  150): pwm_diff =   3
-    when (  11 ..   50): pwm_diff =   1
-    when ( -10 ..   10): pwm_diff =   0
-    when ( -50 ..  -11): pwm_diff =  -1
-    when (-150 ..  -51): pwm_diff =  -3
-    when (-inf .. -151): pwm_diff = -10
+    when ( 151 ..  inf); pwm_diff =  10
+    when (  51 ..  150); pwm_diff =   3
+    when (  11 ..   50); pwm_diff =   1
+    when ( -10 ..   10); pwm_diff =   0
+    when ( -50 ..  -11); pwm_diff =  -1
+    when (-150 ..  -51); pwm_diff =  -3
+    when (-inf .. -151); pwm_diff = -10
     else                 pwm_diff =   0
     end
   end
