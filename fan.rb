@@ -292,7 +292,7 @@ if __FILE__ == $0
     Thread.current[:name] = "Controllers"
     loop {
       controllers.each_pair { |sym, controller| controller.set_fan_speed }
-      sleep(10)
+      sleep(6)
     }
   rescue Exception => e
     log(e)
