@@ -237,35 +237,38 @@ end
 
 if __FILE__ == $0
   begin
-    SENSOR_DIR = '/sys/devices/platform/w83627ehf.656'
+    SENSOR_DIR = '/sys/devices/platform'
 
     sensors = {
-      :fan_cpu => FanSensor.new(:filename => File.join(SENSOR_DIR, 'fan2_input'), :samples  => 5),
-      :fan_psu => FanSensor.new(:filename => File.join(SENSOR_DIR, 'fan1_input'), :samples  => 5),
-      :temp_cpu    => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'temp2_input'), :samples => 3),
-      :temp_system => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'temp1_input'), :samples => 3),
-      :temp_cpu_thermistor => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'temp3_input'), :samples => 3),
+      :fan_cpu => FanSensor.new(:filename => File.join(SENSOR_DIR, 'it87.656', 'fan1_input'), :samples  => 5),
+      :fan_psu => FanSensor.new(:filename => File.join(SENSOR_DIR, 'it87.656', 'fan2_input'), :samples  => 5),
+      :temp_cpu    => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'coretemp.0', 'temp1_input'), :samples => 3),
+      :temp_cpu1   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'coretemp.1', 'temp1_input'), :samples => 3),
+      :temp_cpu2   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'pkgtemp.0', 'temp1_input'), :samples => 3),
+      :temp_system => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'it87.656', 'temp1_input'), :samples => 3),
     }
 
     controllers = {
       :cpu => FanController.new(:name => "CPU",
-                                :filename => File.join(SENSOR_DIR, 'pwm2'),
+                                :filename => File.join(SENSOR_DIR, 'it87.656', 'pwm3'),
                                 :fan_sensor => sensors[:fan_cpu],
                                 :function => lambda {
                                   [ 500,
                                     (0.1 * sensors[:temp_system].value +
-                                     0.6 * sensors[:temp_cpu].value +
-                                     0.3 * sensors[:temp_cpu_thermistor].value) * 40 - 1000
+                                     0.2 * sensors[:temp_cpu].value +
+                                     0.2 * sensors[:temp_cpu1].value +
+                                     0.2 * sensors[:temp_cpu2].value) * 42 - 1000
                                   ].max
                                 } ),
       :power_supply => FanController.new(:name => "PSU",
-                                         :filename => File.join(SENSOR_DIR, 'pwm4'),
+                                         :filename => File.join(SENSOR_DIR, 'it87.656', 'pwm2'),
                                          :fan_sensor => sensors[:fan_psu],
                                          :function => lambda {
-                                           [ 500,
-                                             (0.8 * sensors[:temp_system].value +
+                                           [ 550,
+                                             (0.7 * sensors[:temp_system].value +
                                               0.1 * sensors[:temp_cpu].value +
-                                              0.1 * sensors[:temp_cpu_thermistor].value) * 45 - 1050
+					      0.1 * sensors[:temp_cpu1].value +
+                                              0.1 * sensors[:temp_cpu2].value) * 45 - 1050
                                            ].max
                                          } ),
     }
