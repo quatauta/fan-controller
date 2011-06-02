@@ -242,9 +242,9 @@ if __FILE__ == $0
     sensors = {
       :fan_cpu => FanSensor.new(:filename => File.join(SENSOR_DIR, 'it87.656', 'fan1_input'), :samples  => 5),
       :fan_psu => FanSensor.new(:filename => File.join(SENSOR_DIR, 'it87.656', 'fan2_input'), :samples  => 5),
-      :temp_cpu    => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'coretemp.0', 'temp1_input'), :samples => 3),
-      :temp_cpu1   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'coretemp.1', 'temp1_input'), :samples => 3),
-      :temp_cpu2   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'pkgtemp.0', 'temp1_input'), :samples => 3),
+      :temp_cpu1   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'coretemp.0', 'temp1_input'), :samples => 3),
+      :temp_cpu2   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'coretemp.1', 'temp1_input'), :samples => 3),
+      :temp_cpu3   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'pkgtemp.0', 'temp1_input'), :samples => 3),
       :temp_system => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'it87.656', 'temp1_input'), :samples => 3),
     }
 
@@ -255,9 +255,9 @@ if __FILE__ == $0
                                 :function => lambda {
                                   [ 500,
                                     (0.1 * sensors[:temp_system].value +
-                                     0.2 * sensors[:temp_cpu].value +
-                                     0.2 * sensors[:temp_cpu1].value +
-                                     0.2 * sensors[:temp_cpu2].value) * 42 - 1000
+                                     0.3 * sensors[:temp_cpu1].value +
+                                     0.3 * sensors[:temp_cpu2].value +
+                                     0.3 * sensors[:temp_cpu3].value) * 42 - 1000
                                   ].max
                                 } ),
       :power_supply => FanController.new(:name => "PSU",
@@ -266,9 +266,9 @@ if __FILE__ == $0
                                          :function => lambda {
                                            [ 550,
                                              (0.7 * sensors[:temp_system].value +
-                                              0.1 * sensors[:temp_cpu].value +
-					      0.1 * sensors[:temp_cpu1].value +
-                                              0.1 * sensors[:temp_cpu2].value) * 45 - 1050
+                                              0.1 * sensors[:temp_cpu1].value +
+					      0.1 * sensors[:temp_cpu2].value +
+                                              0.1 * sensors[:temp_cpu3].value) * 45 - 1050
                                            ].max
                                          } ),
     }
