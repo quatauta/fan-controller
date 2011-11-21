@@ -267,8 +267,8 @@ if __FILE__ == $0
                                            [ 550,
                                              (0.7 * sensors[:temp_system].value +
                                               0.1 * sensors[:temp_cpu1].value +
-					      0.1 * sensors[:temp_cpu2].value +
-                                              0.1 * sensors[:temp_cpu3].value) * 45 - 1050
+                                              0.1 * sensors[:temp_cpu2].value +
+                                              0.1 * sensors[:temp_cpu3].value) * 46 - 1050
                                            ].max
                                          } ),
     }
