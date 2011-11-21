@@ -282,7 +282,7 @@ if __FILE__ == $0
       loop {
         begin
           sensors.each_pair { |sym, sensor| sensor.update }
-        rescue Execption => e
+        rescue Exception => e
           log(e)
         end
 
