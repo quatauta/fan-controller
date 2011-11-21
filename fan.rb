@@ -280,12 +280,7 @@ if __FILE__ == $0
     Thread.new {
       Thread.current[:name] = "Sensors"
       loop {
-        begin
-          sensors.each_pair { |sym, sensor| sensor.update }
-        rescue Exception => e
-          log(e)
-        end
-
+        sensors.each_pair { |sym, sensor| sensor.update }
         sleep(3)
       }
     }
