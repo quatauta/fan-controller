@@ -275,6 +275,8 @@ if __FILE__ == $0
 
     log("Starting ...")
 
+    Thread.abort_on_exception = true
+
     Thread.new {
       Thread.current[:name] = "Sensors"
       loop {
