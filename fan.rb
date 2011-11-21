@@ -225,9 +225,9 @@ end
 # @return [nil]
 def log(msg)
   if msg.kind_of? Exception
-    log("Exception in thread %s: %s\n  %s" % [ Thread.current[:name] || Thread.current.to_s,
-                                               msg.inspect,
-                                               msg.backtrace.join("\n  ") ])
+    log("Exception in thread %s\n  %s\n  %s" % [ Thread.current[:name] || Thread.current.to_s,
+                                                 msg.inspect,
+                                                 msg.backtrace.join("\n  ") ])
   else
     $stdout.puts("%s %s" % [ Time.now, msg ])
     $stdout.flush
