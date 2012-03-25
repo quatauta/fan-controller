@@ -253,7 +253,7 @@ if __FILE__ == $0
                                 :filename => File.join(SENSOR_DIR, 'it87.656', 'pwm3'),
                                 :fan_sensor => sensors[:fan_cpu],
                                 :function => lambda {
-                                  [ 500,
+                                  [ 400,
                                     (0.1 * sensors[:temp_system].value +
                                      0.3 * sensors[:temp_cpu1].value +
                                      0.3 * sensors[:temp_cpu2].value +
@@ -264,7 +264,7 @@ if __FILE__ == $0
                                          :filename => File.join(SENSOR_DIR, 'it87.656', 'pwm2'),
                                          :fan_sensor => sensors[:fan_psu],
                                          :function => lambda {
-                                           [ 550,
+                                           [ 400,
                                              (0.7 * sensors[:temp_system].value +
                                               0.1 * sensors[:temp_cpu1].value +
                                               0.1 * sensors[:temp_cpu2].value +
