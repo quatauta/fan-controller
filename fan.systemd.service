@@ -1,0 +1,10 @@
+[Unit]
+Description=Fan Controller
+
+[Service]
+ExecStart=/usr/local/bin/fan.rb
+# StandardOutput=null
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
