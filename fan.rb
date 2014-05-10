@@ -79,7 +79,7 @@ class FileInputSensor < Sensor
 
   # Read the content of the file
   def read
-    File.read(self.filename)
+    File.read(self.filename).freeze
   end
 end
 
@@ -116,6 +116,8 @@ class FanController
   # @return [String]
   attr_accessor :filename
 
+  attr_accessor :filename_pwn_enable
+
   # The +Proc+ that calculates the rotation speed of the fan
   # @return [Proc]
   attr_accessor :function
@@ -132,7 +134,7 @@ class FanController
   # @option opts [Proc] :function (lambda { nil }) the function that calculates the fan's rotation speed
   def initialize(opts = {})
     opts = {
-      :name       => "n/a",
+      :name       => "n/a".freeze,
       :fan_sensor => nil,
       :filename   => nil,
       :function   => lambda { nil },
@@ -142,13 +144,15 @@ class FanController
     self.filename   = opts[:filename]
     self.function   = opts[:function]
     self.name       = opts[:name]
+
+    self.filename_pwn_enable = "%s_enable".freeze % self.filename
   end
 
   # Read the fan's PWM value from {#filename}
   #
   # @return [Integer] the PWM value
   def pwm
-    File.read(self.filename).split.first.to_i
+    File.read(self.filename).freeze.split.first.to_i
   end
 
   # Write the new fan's PWM value to +filename+ and enable the PWM feature
@@ -156,11 +160,11 @@ class FanController
   # @param [Integer] value the new PWM value of the fan
   # @return [nil]
   def pwm=(value)
-    File.open("%s_enable" % self.filename, "w") do |io|
+    File.open(self.filename_pwn_enable, "w".freeze) do |io|
       io.write(1)
     end
 
-    File.open(self.filename, "w") do |io|
+    File.open(self.filename, "w".freeze) do |io|
       io.write(value.to_i)
     end
   end
@@ -177,12 +181,12 @@ class FanController
     pwm_diff      = self.speed_diff_to_pwm_diff(target_speed - current_speed)
 
     if 0 != pwm_diff
-      log("%s: %d rpm to %d rpm, changing %s by %d." % \
-          [ self.name,
-            current_speed,
-            target_speed,
-            File.basename(self.filename),
-            pwm_diff ])
+      # log("%s: %d rpm to %d rpm, changing %s by %d.".freeze % \
+      #     [ self.name,
+      #       current_speed,
+      #       target_speed,
+      #       File.basename(self.filename),
+      #       pwm_diff ])
 
       self.pwm = current_pwm + pwm_diff
     end
@@ -225,11 +229,11 @@ end
 # @return [nil]
 def log(msg)
   if msg.kind_of? Exception
-    log("Exception in thread %s\n  %s\n  %s" % [ Thread.current[:name] || Thread.current.to_s,
-                                                 msg.inspect,
-                                                 msg.backtrace.join("\n  ") ])
+    log("Exception in thread %s\n  %s\n  %s".freeze % [ Thread.current[:name] || Thread.current.to_s,
+                                                        msg.inspect,
+                                                        msg.backtrace.join("\n  ".freeze) ])
   else
-    $stdout.puts("%s %s" % [ Time.now, msg ])
+    $stdout.puts("%s %s".freeze % [ Time.now, msg ])
     $stdout.flush
   end
 end
