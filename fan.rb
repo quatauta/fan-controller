@@ -282,6 +282,14 @@ if __FILE__ == $0
     Thread.abort_on_exception = true
 
     Thread.new {
+      Thread.current[:name] = "GC"
+      loop {
+        GC.start
+        sleep(300)
+      }
+    }
+
+    Thread.new {
       Thread.current[:name] = "Sensors"
       loop {
         sensors.each_pair { |sym, sensor| sensor.update }
@@ -297,14 +305,6 @@ if __FILE__ == $0
     loop {
       controllers.each_pair { |sym, controller| controller.set_fan_speed }
       sleep(6)
-    }
-
-    Thread.new {
-      Thread.current[:name] = "GC"
-      loop {
-        GC.start
-        sleep(300)
-      }
     }
   rescue Exception => e
     log(e)
