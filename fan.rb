@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 
-require 'thread'
+require "thread"
 
 
 # Base-class to store sensor values in a ring-buffer.
@@ -241,20 +241,20 @@ end
 
 if __FILE__ == $0
   begin
-    SENSOR_DIR = '/sys/devices/platform'
+    SENSOR_DIR = "/sys/devices/platform"
 
     sensors = {
-      :fan_cpu => FanSensor.new(:filename => File.join(SENSOR_DIR, 'it87.656', 'fan1_input'), :samples  => 5),
-      :fan_psu => FanSensor.new(:filename => File.join(SENSOR_DIR, 'it87.656', 'fan2_input'), :samples  => 5),
-      :temp_cpu1   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'coretemp.0', 'temp1_input'), :samples => 3),
-      :temp_cpu2   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'coretemp.0', 'temp2_input'), :samples => 3),
-      :temp_cpu3   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'coretemp.0', 'temp3_input'), :samples => 3),
-      :temp_system => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, 'it87.656', 'temp1_input'), :samples => 3),
+      :fan_cpu => FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656", "fan1_input"), :samples  => 5),
+      :fan_psu => FanSensor.new(:filename => File.join(SENSOR_DIR, "ot87.656", "fan2_input"), :samples  => 5),
+      :temp_cpu1   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "temp1_input"), :samples => 3),
+      :temp_cpu2   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "temp2_input"), :samples => 3),
+      :temp_cpu3   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "temp3_input"), :samples => 3),
+      :temp_system => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "it87.656", "temp1_input"), :samples => 3),
     }
 
     controllers = {
       :cpu => FanController.new(:name => "CPU",
-                                :filename => File.join(SENSOR_DIR, 'it87.656', 'pwm3'),
+                                :filename => File.join(SENSOR_DIR, "it87.656", "pwm3"),
                                 :fan_sensor => sensors[:fan_cpu],
                                 :function => lambda {
                                   [ 400,
@@ -265,7 +265,7 @@ if __FILE__ == $0
                                   ].max
                                 } ),
       :power_supply => FanController.new(:name => "PSU",
-                                         :filename => File.join(SENSOR_DIR, 'it87.656', 'pwm2'),
+                                         :filename => File.join(SENSOR_DIR, "it87.656", "pwm2"),
                                          :fan_sensor => sensors[:fan_psu],
                                          :function => lambda {
                                            [ 400,
