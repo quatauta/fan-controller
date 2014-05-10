@@ -245,7 +245,7 @@ if __FILE__ == $0
 
     sensors = {
       :fan_cpu => FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656", "fan1_input"), :samples  => 5),
-      :fan_psu => FanSensor.new(:filename => File.join(SENSOR_DIR, "ot87.656", "fan2_input"), :samples  => 5),
+      :fan_psu => FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656", "fan2_input"), :samples  => 5),
       :temp_cpu1   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "temp1_input"), :samples => 3),
       :temp_cpu2   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "temp2_input"), :samples => 3),
       :temp_cpu3   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "temp3_input"), :samples => 3),
