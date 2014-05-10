@@ -298,6 +298,14 @@ if __FILE__ == $0
       controllers.each_pair { |sym, controller| controller.set_fan_speed }
       sleep(6)
     }
+
+    Thread.new {
+      Thread.current[:name] = "GC"
+      loop {
+        GC.start
+        sleep(300)
+      }
+    }
   rescue Exception => e
     log(e)
   end
