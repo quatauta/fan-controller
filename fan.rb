@@ -90,7 +90,7 @@ class FanSensor < FileInputSensor
   #
   # @return [Integer] the fan's rotation speed
   def read
-    super.split.first.to_i
+    super.to_i
   end
 end
 
@@ -101,7 +101,7 @@ class TemperatureSensor < FileInputSensor
   #
   # @return [Float] the temperature
   def read
-    super.split.first.to_i / 1000.0
+    super.to_i / 1000.0
   end
 end
 
