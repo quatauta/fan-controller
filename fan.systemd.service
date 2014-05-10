@@ -2,6 +2,7 @@
 Description=Fan Controller
 
 [Service]
+ExecStartPre=/usr/bin/env ruby -c /usr/local/bin/fan.rb
 ExecStart=/usr/local/bin/fan.rb
 # StandardOutput=null
 Restart=always
