@@ -16,13 +16,11 @@ class Sensor
 
   # Create a new +Sensor+
   #
-  # @option opts [Integer] :samples (5) the number of sensor values to store in the ring-buffer
-  def initialize(opts = {})
-    opts = { :samples => 5 }.merge(opts)
-
+  # @option [Integer] :samples (5) the number of sensor values to store in the ring-buffer
+  def initialize(samples: 5)
     @semaphore = Mutex.new
 
-    self.samples = opts[:samples]
+    self.samples = samples
     self.values  = []
   end
 
@@ -68,13 +66,11 @@ class FileInputSensor < Sensor
 
   # Create a new {FileInputSensor} object
   #
-  # @option opts [String] :filename (nil) The name of the file to read
-  def initialize(opts = {})
-    opts = { :filename => nil }.merge(opts)
+  # @option opts [String] :filename The name of the file to read
+  def initialize(samples: 5, filename:)
+    super(samples: samples)
 
-    super(opts)
-
-    self.filename = opts[:filename]
+    self.filename = filename
   end
 
   # Read the content of the file
@@ -129,21 +125,14 @@ class FanController
   # Create a new +FanController+ object
   #
   # @option opts [String] :name ("n/a") the name of the controlled fan
-  # @option opts [FanSensor] :fan_sensor (nil) the {FanSensor} to read the rotation speed from
-  # @option opts [String] :filename (nil) the file to read/write the PWM value from/to
+  # @option opts [FanSensor] :fan_sensor the {FanSensor} to read the rotation speed from
+  # @option opts [String] :filename the file to read/write the PWM value from/to
   # @option opts [Proc] :function (lambda { nil }) the function that calculates the fan's rotation speed
-  def initialize(opts = {})
-    opts = {
-      :name       => "n/a".freeze,
-      :fan_sensor => nil,
-      :filename   => nil,
-      :function   => lambda { nil },
-    }.merge(opts)
-
-    self.fan_sensor = opts[:fan_sensor]
-    self.filename   = opts[:filename]
-    self.function   = opts[:function]
-    self.name       = opts[:name]
+  def initialize(name: "n/a", fan_sensor:, filename:, function: lambda { nil })
+    self.fan_sensor = fan_sensor
+    self.filename   = filename
+    self.function   = function
+    self.name       = name
 
     self.filename_pwn_enable = "%s_enable".freeze % self.filename
   end
@@ -181,12 +170,12 @@ class FanController
     pwm_diff      = self.speed_diff_to_pwm_diff(target_speed - current_speed)
 
     if 0 != pwm_diff
-      # log("%s: %d rpm to %d rpm, changing %s by %d.".freeze % \
-      #     [ self.name,
-      #       current_speed,
-      #       target_speed,
-      #       File.basename(self.filename),
-      #       pwm_diff ])
+      log("%s: %d rpm to %d rpm, changing %s by %d.".freeze % \
+          [ self.name,
+            current_speed,
+            target_speed,
+            File.basename(self.filename),
+            pwm_diff ])
 
       self.pwm = current_pwm + pwm_diff
     end
@@ -246,9 +235,9 @@ if __FILE__ == $0
     sensors = {
       :fan_cpu => FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656", "fan1_input"), :samples  => 5),
       :fan_psu => FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656", "fan2_input"), :samples  => 5),
-      :temp_cpu1   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "temp1_input"), :samples => 3),
-      :temp_cpu2   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "temp2_input"), :samples => 3),
-      :temp_cpu3   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "temp3_input"), :samples => 3),
+      :temp_cpu1   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "hwmon", "hwmon1", "temp1_input"), :samples => 3),
+      :temp_cpu2   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "hwmon", "hwmon1", "temp2_input"), :samples => 3),
+      :temp_cpu3   => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "hwmon", "hwmon1", "temp3_input"), :samples => 3),
       :temp_system => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "it87.656", "temp1_input"), :samples => 3),
     }
 
