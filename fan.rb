@@ -4,7 +4,6 @@
 
 require "thread"
 
-
 # Base-class to store sensor values in a ring-buffer.
 #
 # @abstract Subclass and override {#read} to implement a sensor
@@ -59,7 +58,6 @@ class Sensor
   end
 end
 
-
 # Reads a single sensor value from a file.
 class FileInputSensor < Sensor
   # The name of the file to read the sensor value from
@@ -80,7 +78,6 @@ class FileInputSensor < Sensor
   end
 end
 
-
 # Reads fan rotation speed
 class FanSensor < FileInputSensor
   # Parse the file read by {FileInputSensor#read} as integer to a fan rotation speed
@@ -91,7 +88,6 @@ class FanSensor < FileInputSensor
   end
 end
 
-
 # Reads the temperature of a mainboard temperature sensor
 class TemperatureSensor < FileInputSensor
   # Parse the file read by {FileInputSensor#read} as float to a temperature
@@ -101,7 +97,6 @@ class TemperatureSensor < FileInputSensor
     super.to_i / 1000.0
   end
 end
-
 
 # Set the rotation speed of a fan according to a supplied function
 class FanController
@@ -177,7 +172,6 @@ class FanController
       #       target_speed,
       #       File.basename(self.filename),
       #       pwm_diff ])
-
       self.pwm = current_pwm + pwm_diff
     end
 
@@ -209,7 +203,6 @@ class FanController
   end
 end
 
-
 # Print the text prefixed by the current date and time.
 #
 # If an Exception is given, the thread-local variable +:name+ (or +Thread#to_s+) and the
@@ -228,37 +221,36 @@ def log(msg)
   end
 end
 
-
 if __FILE__ == $0
   begin
     SENSOR_DIR = "/sys/devices/platform"
 
     sensors = {
-      :fan_cpu => FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "fan1_input"), :samples  => 5),
-      :fan_psu => FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "fan2_input"), :samples  => 5),
+      :fan_cpu     =>         FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656",   "hwmon", "hwmon0", "fan1_input"),  :samples => 5),
+      :fan_psu     =>         FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656",   "hwmon", "hwmon0", "fan2_input"),  :samples => 5),
       :temp_cpu    => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "hwmon", "hwmon1", "temp5_input"), :samples => 3),
       :temp_system => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "it87.656",   "hwmon", "hwmon0", "temp2_input"), :samples => 3),
     }
 
     controllers = {
       :cpu => FanController.new(:name => "CPU",
-                                :filename => File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "pwm3"),
+                                :filename   => File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "pwm3"),
                                 :fan_sensor => sensors[:fan_cpu],
-                                :function => lambda {
+                                :function   => lambda {
                                   [ 400,
                                     (0.5 * sensors[:temp_system].value +
                                      0.5 * sensors[:temp_cpu].value) * 42 - 1000
                                   ].max
-                                } ),
+                                }),
       :power_supply => FanController.new(:name => "PSU",
-                                         :filename => File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "pwm2"),
+                                         :filename   => File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "pwm2"),
                                          :fan_sensor => sensors[:fan_psu],
-                                         :function => lambda {
+                                         :function   => lambda {
                                            [ 400,
                                              (0.7 * sensors[:temp_system].value +
                                               0.3 * sensors[:temp_cpu].value) * 46 - 1050
                                            ].max
-                                         } ),
+                                         }),
     }
 
     log("Starting ...")
