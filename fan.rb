@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
-# -*- coding: utf-8 -*-
 # frozen_string_literal: true
-
-require "thread"
 
 # Base-class to store sensor values in a ring-buffer.
 #
@@ -39,8 +36,8 @@ class Sensor
   # @return [nil]
   def update
     @semaphore.synchronize do
-      self.values.shift while self.values.size >= self.samples
-      self.values.push(self.read)
+      values.shift while values.size >= samples
+      values.push(read)
     end
   end
 
@@ -51,7 +48,7 @@ class Sensor
     value = nil
 
     @semaphore.synchronize do
-      value = self.values.inject(:+) / self.values.size unless self.values.empty?
+      value = values.inject(:+) / values.size unless values.empty?
     end
 
     value
@@ -74,7 +71,7 @@ class FileInputSensor < Sensor
 
   # Read the content of the file
   def read
-    File.read(self.filename)
+    File.read(filename)
   end
 end
 
@@ -130,14 +127,14 @@ class FanController
     self.function   = function
     self.name       = name
 
-    self.filename_pwn_enable = "%s_enable" % self.filename
+    self.filename_pwn_enable = format("%s_enable", self.filename)
   end
 
   # Read the fan's PWM value from {#filename}
   #
   # @return [Integer] the PWM value
   def pwm
-    File.read(self.filename).split.first.to_i
+    File.read(filename).split.first.to_i
   end
 
   # Write the new fan's PWM value to +filename+ and enable the PWM feature
@@ -145,11 +142,11 @@ class FanController
   # @param [Integer] value the new PWM value of the fan, limited to values 0..255
   # @return [nil]
   def pwm=(value)
-    File.open(self.filename_pwn_enable, "w") do |io|
+    File.open(filename_pwn_enable, "w") do |io|
       io.write(1)
     end
 
-    File.open(self.filename, "w") do |io|
+    File.open(filename, "w") do |io|
       io.write(value.to_i.clamp(0, 255))
     end
   end
@@ -160,12 +157,12 @@ class FanController
   # @return [Integer] the rotation speed the returned from {#function}
   # @see #speed_diff_to_pwm_diff
   def set_fan_speed
-    current_pwm   = self.pwm
-    current_speed = self.fan_sensor.value.to_i
-    target_speed  = self.function.call.to_i
-    pwm_diff      = self.speed_diff_to_pwm_diff(target_speed - current_speed)
+    current_pwm   = pwm
+    current_speed = fan_sensor.value.to_i
+    target_speed  = function.call.to_i
+    pwm_diff      = speed_diff_to_pwm_diff(target_speed - current_speed)
 
-    if 0 != pwm_diff
+    if pwm_diff != 0
       # log("%s: %d rpm to %d rpm, changing %s by %d." % \
       #     [ self.name,
       #       current_speed,
@@ -188,17 +185,17 @@ class FanController
   # @param [Numeric] speed_diff the rotation speed difference
   # @return [Integer] the PWM value difference
   def speed_diff_to_pwm_diff(speed_diff)
-    inf = 1.0/0.0
+    inf = 1.0 / 0.0
 
     case speed_diff
-    when ( 151 ..  inf); pwm_diff =  10
-    when (  51 ..  150); pwm_diff =   3
-    when (  11 ..   50); pwm_diff =   1
-    when ( -10 ..   10); pwm_diff =   0
-    when ( -50 ..  -11); pwm_diff =  -1
-    when (-150 ..  -51); pwm_diff =  -3
-    when (-inf .. -151); pwm_diff = -10
-    else                 pwm_diff =   0
+      when (151..inf) then 10
+      when (51..150) then 3
+      when (11..50) then 1
+      when (-10..10) then 0
+      when (-50..-11) then -1
+      when (-150..-51) then -3
+      when (-inf..-151) then -10
+      else 0
     end
   end
 end
@@ -211,67 +208,63 @@ end
 # @param [String] msg the text or Exception to print
 # @return [nil]
 def log(msg)
-  if msg.kind_of? Exception
-    log("Exception in thread %s\n  %s\n  %s" % [ Thread.current[:name] || Thread.current.to_s,
-                                                 msg.inspect,
-                                                 msg.backtrace.join("\n  ") ])
+  if msg.is_a? Exception
+    log(format("Exception in thread %s\n  %s\n  %s", Thread.current[:name] || Thread.current.to_s, msg.inspect, msg.backtrace.join("\n  ")))
   else
-    $stdout.puts("%s %s" % [ Time.now, msg ])
+    $stdout.puts(format("%s %s", Time.now, msg))
     $stdout.flush
   end
 end
 
-if __FILE__ == $0
+if $PROGRAM_NAME == __FILE__
   begin
     SENSOR_DIR = "/sys/devices/platform"
 
     sensors = {
-      :fan_cpu     =>         FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656",   "hwmon", "hwmon0", "fan1_input"),  :samples => 5),
-      :fan_psu     =>         FanSensor.new(:filename => File.join(SENSOR_DIR, "it87.656",   "hwmon", "hwmon0", "fan2_input"),  :samples => 5),
-      :temp_cpu    => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "coretemp.0", "hwmon", "hwmon1", "temp5_input"), :samples => 3),
-      :temp_system => TemperatureSensor.new(:filename => File.join(SENSOR_DIR, "it87.656",   "hwmon", "hwmon0", "temp2_input"), :samples => 3),
+      fan_cpu: FanSensor.new(filename: File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "fan1_input"), samples: 5),
+      fan_psu: FanSensor.new(filename: File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "fan2_input"), samples: 5),
+      temp_cpu: TemperatureSensor.new(filename: File.join(SENSOR_DIR, "coretemp.0", "hwmon", "hwmon1", "temp5_input"), samples: 3),
+      temp_system: TemperatureSensor.new(filename: File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "temp2_input"), samples: 3),
     }
 
     controllers = {
-      :cpu => FanController.new(:name => "CPU",
-                                :filename   => File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "pwm3"),
-                                :fan_sensor => sensors[:fan_cpu],
-                                :function   => lambda {
-                                  [ 400,
-                                    (0.5 * sensors[:temp_system].value +
-                                     0.5 * sensors[:temp_cpu].value) * 42 - 1000
-                                  ].max
-                                }),
-      :power_supply => FanController.new(:name => "PSU",
-                                         :filename   => File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "pwm2"),
-                                         :fan_sensor => sensors[:fan_psu],
-                                         :function   => lambda {
-                                           [ 400,
-                                             (0.7 * sensors[:temp_system].value +
-                                              0.3 * sensors[:temp_cpu].value) * 46 - 1050
-                                           ].max
-                                         }),
+      cpu: FanController.new(name: "CPU",
+                             filename: File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "pwm3"),
+                             fan_sensor: sensors[:fan_cpu],
+                             function: lambda {
+                               [400,
+                                (0.5 * sensors[:temp_system].value +
+                                 0.5 * sensors[:temp_cpu].value) * 42 - 1000,].max
+                             }),
+      power_supply: FanController.new(name: "PSU",
+                                      filename: File.join(SENSOR_DIR, "it87.656", "hwmon", "hwmon0", "pwm2"),
+                                      fan_sensor: sensors[:fan_psu],
+                                      function: lambda {
+                                        [400,
+                                         (0.7 * sensors[:temp_system].value +
+                                          0.3 * sensors[:temp_cpu].value) * 46 - 1050,].max
+                                      }),
     }
 
     log("Starting ...")
 
     Thread.abort_on_exception = true
 
-    Thread.new {
+    Thread.new do
       Thread.current[:name] = "GC"
       loop {
         GC.start
         sleep(300)
       }
-    }
+    end
 
-    Thread.new {
+    Thread.new do
       Thread.current[:name] = "Sensors"
       loop {
         sensors.each_pair { |sym, sensor| sensor.update }
         sleep(3)
       }
-    }
+    end
 
     log("Collecting sensor values for 10 seconds ...")
     sleep(10)
@@ -282,7 +275,7 @@ if __FILE__ == $0
       controllers.each_pair { |sym, controller| controller.set_fan_speed }
       sleep(6)
     }
-  rescue Exception => e
-    log(e)
+  rescue => error
+    log(error)
   end
 end
