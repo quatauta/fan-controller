@@ -110,3 +110,9 @@ namespace :test do
 rescue LoadError
   true # ignore missing cucumber
 end
+
+namespace :test do
+  require "standard/rake"
+rescue LoadError
+  true # ignore missing standard
+end
