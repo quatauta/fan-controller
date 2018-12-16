@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "symbolic"
 
-  spec.add_development_dependency "bundler", "~> 1.3"
+  spec.add_development_dependency "bundler", "> 1.3"
   spec.add_development_dependency "bundler-audit"
   spec.add_development_dependency "flog"
   spec.add_development_dependency "cucumber", ">= 0.1.8"
